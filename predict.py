@@ -21,17 +21,33 @@ def load_model_meta(meta_path):
     with open(meta_path, 'r', encoding='utf-8') as input:
         model_meta = json.load(input)
 
+    model_meta = preprocess_model_meta(model_meta)
+
     return model_meta
 
 
-def random_primer(primer_dict):
+def preprocess_model_meta(model_meta):
 
-    chapter = random.choice(list(primer_dict.keys()))
+    int_to_chars = model_meta['text_encoder']
+    primer = model_meta['primer']
 
-    line = int(primer_dict[chapter]) + 1
-    sub_chapter =  random.randint(line,line+50)
+    primer = [[int_to_chars[str(j)] for j in i] for i in primer]
+    primer = [''.join(i) for i in primer]
+    model_meta['primer'] = primer
 
-    return "{}:{} ".format(chapter, sub_chapter)
+    return model_meta
+
+
+def model_prediction(model, model_meta, window_size, num_to_predict):
+
+
+    input_chars = random.choice(model_meta['primer'])
+
+    # use the prediction function
+    predict_input = predict_next_chars(model, model_meta, input_chars,
+                                       window_size, num_to_predict)
+
+    return predict_input
 
 
 def predict_next_chars(model, model_meta, input_chars, window_size,
@@ -65,12 +81,32 @@ def predict_next_chars(model, model_meta, input_chars, window_size,
     return predicted_chars
 
 
-def model_prediction(model, model_meta, window_size, num_to_predict):
+def extract_verse(model_meta, inputs):
 
-    input_chars = random_primer(model_meta['primer'])
+    # to make sure, tht no existing verse is used, i put some randomization
+    # to postprocessing
 
-    # use the prediction function
-    predict_input = predict_next_chars(model, model_meta, input_chars,
-                                       window_size, num_to_predict)
+    chapter_dict = model_meta['chapter']
 
-    return predict_input
+    message = inputs.split('\n')[1]
+    chapter = message.split(':')
+
+    try:
+        begin = random_chapter(chapter_dict, chapter[0], False)
+    except:
+        begin = random_chapter(chapter_dict, chapter[0], True)
+
+    message = begin + chapter[1][chapter[1].index(' ')+1:]
+
+    return message
+
+
+def random_chapter(chapter_dict, chapter, flag):
+
+    if flag:
+        chapter = random.choice(list(chapter_dict.keys()))
+
+    line = int(chapter_dict[chapter]) + 1
+    sub_chapter =  random.randint(line,line+50)
+
+    return "{}:{} ".format(chapter, sub_chapter)

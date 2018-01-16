@@ -2,13 +2,12 @@ import os
 import tweepy
 import time
 
-from predict import model_prediction, load_rnn, load_model_meta
+from predict import model_prediction, load_rnn, load_model_meta, extract_verse
 import config
 
 
 if __name__ == '__main__':
 
-    message = "first test tweet"
     num_prediction = config.num_prediction
     window_size = config.window_size
 
@@ -24,12 +23,19 @@ if __name__ == '__main__':
     model = load_rnn(config.model_path)
 
     while True:
+        try:
 
-        message = model_prediction(model, model_meta, window_size, num_prediction)
+            predict_input = model_prediction(model, model_meta, window_size,
+                                             num_prediction)
 
-        api.update_status(message)
+            message = extract_verse(model_meta, predict_input)
 
-        time.sleep(3600)
+            api.update_status(message)
+
+        except:
+            continue
+
+        time.sleep(3601)
 
 
 

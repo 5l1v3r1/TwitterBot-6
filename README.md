@@ -1,5 +1,6 @@
 # RobotBible
-A twitter bot, which generates bible verses #not running in the moment
+A twitter bot, which generates bible verses
+in the moment running in a very basic version
 
 my castle: https://twitter.com/Reformation_501
 
